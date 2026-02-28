@@ -1,0 +1,66 @@
+/*
+ * Minimal custom styles for OptionsTabRenderer.
+ *
+ * Most form elements (input, select, textarea, button) inherit
+ * DoL's native theme from modules/css/base.css.  We only add
+ * styles for things with no native equivalent.
+ */
+
+/* ── Test status indicator ────────────────────────────── */
+
+.doli-opt-test-status {
+  display: inline-block;
+  margin-left: 0.5em;
+  font-size: 0.9em;
+}
+.doli-opt-status-ok      { color: var(--green-secondary); }
+.doli-opt-status-warn    { color: var(--gold); }
+.doli-opt-status-error   { color: var(--danger); }
+.doli-opt-status-unknown { color: var(--400); }
+
+/* ── Actions row ──────────────────────────────────────── */
+
+.doli-opt-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.4em 0.6em;
+}
+
+/* ── Form field layout ────────────────────────────────── */
+
+.doli-opt-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+
+.doli-opt-field-row > input,
+.doli-opt-field-row > select {
+  max-width: 100%;
+}
+
+.doli-opt-field-label {
+  font-size: inherit;
+}
+
+.doli-opt-field-label-block {
+  display: block;
+  margin-bottom: 0.35em;
+}
+
+/* ── Prompt editor reset button ────────────────────────── */
+
+.doli-opt-prompt-reset {
+  margin-top: 0.4em;
+}
+
+
+/* ── Inline status text ───────────────────────────────── */
+
+.doli-opt-status {
+  margin-left: auto;
+  color: var(--green-secondary);
+  font-size: 0.9em;
+}

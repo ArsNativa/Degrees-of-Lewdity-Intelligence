@@ -1,0 +1,39 @@
+{
+  "name": "doli",
+  "version": "0.1.0",
+  "description": "DoL DOLI - Intelligent Assistant Mod",
+  "private": true,
+  "scripts": {
+    "build:boot": "tsc -p ./src_boot/tsconfig.json",
+    "build:webpack": "webpack -c ./webpack.config.js",
+    "build": "npm run build:boot && npm run build:webpack",
+    "pack": "npm run build && node ./submodules/ModLoader/dist-insertTools/packModZip.js boot.json",
+    "dev:init": "bash scripts/dev-init.sh",
+    "dev:server": "node scripts/dev-server.js",
+    "dev:loader:pack": "bash scripts/pack-dev-loader.sh",
+    "dev": "concurrently -n webpack,server -c blue,green \"npm run watch:webpack\" \"npm run dev:server\"",
+    "watch:webpack": "webpack -w -c ./webpack.config.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.30",
+    "ai": "^6.0.97",
+    "dompurify": "^3.3.1",
+    "marked": "^17.0.3",
+    "rosetta": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/jquery": "^3.5.19",
+    "@types/node": "^20.6.0",
+    "concurrently": "^9.2.1",
+    "css-loader": "^6.8.1",
+    "fork-ts-checker-webpack-plugin": "^8.0.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4",
+    "tsconfig-paths-webpack-plugin": "^4.1.0",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}

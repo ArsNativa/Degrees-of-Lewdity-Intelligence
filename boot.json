@@ -1,0 +1,19 @@
+{
+  "name": "DOLI",
+  "version": "0.1.0",
+  "nickName": { "cn": "D.O.L.I", "en": "D.O.L.I" },
+  "scriptFileList_inject_early": ["dist/DOLI.js"],
+  "scriptFileList_earlyload": ["dist/earlyload/earlyload.js"],
+  "scriptFileList_preload": ["dist/preload/preload.js"],
+  "scriptFileList": [],
+  "styleFileList": [],
+  "tweeFileList": [],
+  "imgFileList": [],
+  "replacePatchList": ["patches/overlay-replace.json"],
+  "additionFile": ["README.md"],
+  "additionBinaryFile": [],
+  "addonPlugin": [],
+  "dependenceInfo": [
+    { "modName": "ModLoader", "version": "^2.0.0" }
+  ]
+}

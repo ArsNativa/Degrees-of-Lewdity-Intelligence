@@ -1,0 +1,128 @@
+export default {
+  // ── UI ─────────────────────────────────────
+  ui: {
+    title: '智能助手',
+    send: '发送',
+    close: '关闭',
+    settings: '设置',
+    input_placeholder: '输入消息...',
+    empty_hint: '在此与智能助手对话。\n请先在设置中配置 API 信息。',
+    empty_hint_configured: '在此与智能助手对话。',
+    float_btn_title: '智能助手',
+    thread_label: '对话',
+    thread_fallback: '对话',
+    reasoning: '中间推理',
+    thread_delete: '删除对话',
+    thread_empty: '暂无对话。',
+  },
+
+  // ── Settings ───────────────────────────────
+  settings: {
+    tab_title: 'DOLI',
+    section_browser: 'API 连接',
+    section_save: '助手设置',
+    api_config_note: '您的 API 凭据信息仅保存在浏览器本地存储，不会被导出。',
+    api_url: 'API 地址',
+    api_key: 'API 密钥',
+    model_name: '模型名称',
+    max_steps: '最大推理步数',
+    assistant_temperature: '采样温度',
+    enable_assistant: '启用助手悬浮窗',
+    system_prompt: '系统提示词',
+    test_connection: '测试连接',
+    prompt_placeholder: '留空使用内置默认提示词',
+    save: '保存',
+    test: '测试连接',
+    reset: '恢复默认',
+    saved: '设置已保存。',
+    reset_done: '设置已重置为默认值。',
+    section_data: '数据控制',
+    clear_browser_data: '清除浏览器本地数据',
+    clear_browser_data_desc: '清除模组在浏览器中存储的所有数据（API 配置、对话记录、记忆等），不影响游戏存档和模组设置。',
+    clear_browser_data_confirm: '确定要清除浏览器中的模组数据吗？API 密钥、对话记录等将被删除，此操作不可撤销。',
+    clear_browser_data_done: '浏览器本地数据已清除。',
+    clear_save_data: '清除存档中的模组数据',
+    clear_save_data_desc: '从当前游戏存档中完全删除模组写入的所有设置和状态。下次存档时生效。',
+    clear_save_data_confirm: '确定要从存档中删除所有模组数据吗？此操作不可撤销，模组设置将在下次加载时重新初始化。',
+    clear_save_data_done: '存档中的模组数据已删除。',
+    open_hint: '请打开游戏设置（侧边栏 → 选项），在 DOLI 标签页中进行配置。',
+    // Combat Narrator
+    section_combat: '战斗叙事',
+    combat_note: '开启后，每回合额外生成一段 AI 叙事并行展示，不替换原文。',
+    enable_combat_narrator: '启用战斗叙事生成',
+    combat_generation_mode: '生成模式',
+    combat_mode_one_shot: 'One Shot',
+    combat_mode_react: 'ReAct',
+    combat_temperature: '采样温度',
+    combat_max_tokens: '最大输出 Token',
+    combat_history_window: '续写窗口回合数',
+    combat_history_window_desc: '注入最近 K 回合 AI 输出到续写上下文（0 = 不注入）',
+
+    combat_include_original: '引用原文参考',
+    combat_include_original_desc: '将原版文本注入 OriginalText 作为生成参考',
+    combat_postprocess_pattern: '后处理正则',
+    combat_postprocess_pattern_desc: '对 LLM 输出应用正则替换后再显示，格式：/pattern/flags（留空禁用）',
+    combat_postprocess_replacement: '替换文本',
+    combat_postprocess_replacement_desc: '正则替换文本，支持 $1、$2 等捕获组引用（留空表示删除匹配内容）',
+    combat_postprocess_invalid: '正则格式无效',
+    combat_prompt_template: '叙事提示词模板',
+    combat_prompt_placeholder: '留空使用内置默认模板',
+    reset_prompt: '恢复默认提示词',
+  },
+
+  // ── Network Status ─────────────────────────
+  status: {
+    unknown: '尚未进行连接检查。',
+    ok: '连接正常。',
+    csp_blocked: '浏览器安全策略 (CSP) 阻止了网络请求。请使用本地版本或检查 CSP 配置。',
+    cors_blocked: 'API 服务器不允许跨域请求 (CORS)。请确认 API 地址支持 CORS，或使用支持跨域的代理。',
+    network_error: '无法连接到 API 服务器。请检查网络连接和 API 地址。',
+    api_auth_error: 'API 认证失败。请检查 API 密钥是否正确。',
+    api_error: 'API 返回错误。请检查 API 配置。',
+    timeout: '连接超时。请检查网络或增大超时时间。',
+    not_configured: '未配置 API 地址。请在设置中填写 API 信息。',
+    checking: '正在检测...',
+    check_btn: '检测',
+    unknown_short: '未检查',
+  },
+
+  // ── Messages ───────────────────────────────
+  msg: {
+    not_configured: '请先在设置中配置 API 信息（API 地址、密钥、模型名称）。',
+    new_chat: '新对话',
+    empty_response: '助手返回了空内容。',
+  },
+
+  // ── Agent / ReAct ──────────────────────────
+  agent: {
+    tool_call: '🔧 调用工具: {{tool}}',
+    tool_result: '✅ 工具返回: {{tool}}',
+    tool_error: '❌ 工具错误: {{tool}} — {{error}}',
+    thinking_with_tools: '正在思考...',
+  },
+
+  // ── Combat Narrator ─────────────────────────
+  combat: {
+    narration_header: 'AI 叙事',
+    generating: '正在生成叙事...',
+    generation_failed: '叙事生成失败',
+    toggle_collapse: '折叠/展开',
+    regenerate: '重新生成',
+    regenerate_title: '重新向大模型发送请求生成叙事',
+    auto_generate: '自动',
+    auto_generate_title: '勾选时后续回合自动生成 AI 叙事，取消勾选则跳过生成',
+    auto_paused: '自动生成已暂停（勾选「自动」恢复，或点击「重新生成」手动触发）',
+  },
+
+  // ── LLM Errors ─────────────────────────────
+  llm: {
+    not_configured: '未配置 API 信息，请先在设置中填写 API 地址、密钥和模型名称。',
+    auth_error: 'API 认证失败，请检查密钥是否正确。',
+    rate_limit: 'API 请求频率超限，请稍后重试。',
+    network_error: '网络错误，无法连接到 API 服务器。',
+    timeout: '请求超时，请检查网络或稍后重试。',
+    model_error: '模型不可用，请检查模型名称是否正确。',
+    content_filter: '内容被安全策略过滤，请修改输入后重试。',
+    unknown_error: '发生未知错误，请稍后重试。',
+  },
+};

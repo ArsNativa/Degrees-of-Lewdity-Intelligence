@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.js.map
+*.zip
+
+.idea
+.vscode
+
+docs/archived
+docs/external
+
+docs/*
+AGENTS.md

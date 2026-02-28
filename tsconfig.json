@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "strict": true,
+    "alwaysStrict": false,
+    "esModuleInterop": true,
+    "isolatedModules": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src_boot",
+    "scripts"
+  ]
+}

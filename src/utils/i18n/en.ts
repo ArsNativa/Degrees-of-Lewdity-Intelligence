@@ -1,0 +1,128 @@
+export default {
+  // ── UI ─────────────────────────────────────
+  ui: {
+    title: 'Assistant',
+    send: 'Send',
+    close: 'Close',
+    settings: 'Settings',
+    input_placeholder: 'Type a message...',
+    empty_hint: 'Chat with the assistant here.\nPlease configure API settings first.',
+    empty_hint_configured: 'Chat with the assistant here.',
+    float_btn_title: 'Assistant',
+    thread_label: 'Conversation',
+    thread_fallback: 'Chat',
+    reasoning: 'Reasoning',
+    thread_delete: 'Delete chat',
+    thread_empty: 'No chats yet.',
+  },
+
+  // ── Settings ───────────────────────────────
+  settings: {
+    tab_title: 'DOLI',
+    section_browser: 'API Connection',
+    section_save: 'Assistant Settings',
+    api_config_note: 'Your API credentials are stored only in browser local storage and will not be exported.',
+    api_url: 'API URL',
+    api_key: 'API Key',
+    model_name: 'Model Name',
+    max_steps: 'Max Reasoning Steps',
+    assistant_temperature: 'Temperature',
+    enable_assistant: 'Enable assistant window',
+    system_prompt: 'System Prompt',
+    test_connection: 'Test Connection',
+    prompt_placeholder: 'Leave blank for built-in default prompt',
+    save: 'Save',
+    test: 'Test Connection',
+    reset: 'Reset Defaults',
+    saved: 'Settings saved.',
+    reset_done: 'Settings reset to defaults.',
+    section_data: 'Data Control',
+    clear_browser_data: 'Clear Browser Data',
+    clear_browser_data_desc: 'Clear all data stored by the mod in the browser (API config, conversations, memory, etc.). Game save and mod settings are not affected.',
+    clear_browser_data_confirm: 'Are you sure you want to clear browser mod data? API keys, conversations, etc. will be deleted. This cannot be undone.',
+    clear_browser_data_done: 'Browser data cleared.',
+    clear_save_data: 'Clear Save Data',
+    clear_save_data_desc: 'Remove all mod settings and state from the current game save. Takes effect on next save.',
+    clear_save_data_confirm: 'Are you sure you want to remove all mod data from the save? This cannot be undone. Mod settings will be re-initialized on next load.',
+    clear_save_data_done: 'Mod data removed from save.',
+    open_hint: 'Open game Settings (sidebar → Options) and go to the DOLI tab to configure.',
+    // Combat Narrator
+    section_combat: 'Combat Narration',
+    combat_note: 'When enabled, an AI-generated narrative paragraph is displayed alongside the original text each turn.',
+    enable_combat_narrator: 'Enable combat narration',
+    combat_generation_mode: 'Generation mode',
+    combat_mode_one_shot: 'One Shot',
+    combat_mode_react: 'ReAct',
+    combat_temperature: 'Temperature',
+    combat_max_tokens: 'Max output tokens',
+    combat_history_window: 'History window (turns)',
+    combat_history_window_desc: 'Inject the last K turns of AI output into narration context (0 = none)',
+
+    combat_include_original: 'Include original text reference',
+    combat_include_original_desc: 'Inject original text into OriginalText as generation reference',
+    combat_postprocess_pattern: 'Post-process regex',
+    combat_postprocess_pattern_desc: 'Apply regex replacement to LLM output before display. Format: /pattern/flags (empty = disabled)',
+    combat_postprocess_replacement: 'Replacement text',
+    combat_postprocess_replacement_desc: 'Regex replacement string, supports $1, $2 capture group references (empty = delete matched content)',
+    combat_postprocess_invalid: 'Invalid regex format',
+    combat_prompt_template: 'Narration prompt template',
+    combat_prompt_placeholder: 'Leave blank for built-in default template',
+    reset_prompt: 'Reset to default prompt',
+  },
+
+  // ── Network Status ─────────────────────────
+  status: {
+    unknown: 'Connection not checked yet.',
+    ok: 'Connection OK.',
+    csp_blocked: 'Blocked by browser Content Security Policy (CSP). Try the local version or check CSP settings.',
+    cors_blocked: 'API server does not allow cross-origin requests (CORS). Ensure the API supports CORS, or use a CORS proxy.',
+    network_error: 'Cannot reach the API server. Check your network and API URL.',
+    api_auth_error: 'API authentication failed. Check your API key.',
+    api_error: 'API returned an error. Check your API configuration.',
+    timeout: 'Connection timed out. Check your network or increase timeout.',
+    not_configured: 'API URL not configured. Please fill in API settings.',
+    checking: 'Checking...',
+    check_btn: 'Check',
+    unknown_short: 'Not checked',
+  },
+
+  // ── Messages ───────────────────────────────
+  msg: {
+    not_configured: 'Please configure API settings first (API URL, key, and model name).',
+    new_chat: 'New Chat',
+    empty_response: 'The assistant returned an empty response.',
+  },
+
+  // ── Agent / ReAct ──────────────────────────
+  agent: {
+    tool_call: '🔧 Calling tool: {{tool}}',
+    tool_result: '✅ Tool returned: {{tool}}',
+    tool_error: '❌ Tool error: {{tool}} — {{error}}',
+    thinking_with_tools: 'Thinking...',
+  },
+
+  // ── Combat Narrator ─────────────────────────
+  combat: {
+    narration_header: 'AI Narration',
+    generating: 'Generating narration...',
+    generation_failed: 'Narration generation failed',
+    toggle_collapse: 'Collapse / Expand',
+    regenerate: 'Regenerate',
+    regenerate_title: 'Re-send prompt to LLM for narration',
+    auto_generate: 'Auto',
+    auto_generate_title: 'When checked, auto-generate AI narration on subsequent turns; uncheck to skip',
+    auto_paused: 'Auto-generation paused (check "Auto" to resume, or click "Regenerate")',
+  },
+
+  // ── LLM Errors ─────────────────────────────
+  llm: {
+    not_configured: 'API not configured. Please fill in the API URL, key, and model name in settings.',
+    auth_error: 'API authentication failed. Please check your API key.',
+    rate_limit: 'API rate limit exceeded. Please try again later.',
+    network_error: 'Network error. Cannot connect to the API server.',
+    timeout: 'Request timed out. Please check your network and try again.',
+    model_error: 'Model not available. Please check the model name.',
+    content_filter: 'Content blocked by safety filter. Please modify your input.',
+    unknown_error: 'An unknown error occurred. Please try again later.',
+  },
+};

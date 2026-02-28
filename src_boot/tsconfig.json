@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "ES6",
+    "moduleResolution": "classic",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "outDir": "../dist",
+    "removeComments": true,
+    "strict": true,
+    "alwaysStrict": false,
+    "esModuleInterop": true,
+    "isolatedModules": false,
+    "declaration": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
+}

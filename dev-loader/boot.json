@@ -1,0 +1,19 @@
+{
+  "name": "DOLIDevLoader",
+  "version": "0.0.1",
+  "nickName": { "cn": "DOLI 开发加载器", "en": "DOLI Dev Loader" },
+  "scriptFileList_inject_early": ["inject_early.js"],
+  "scriptFileList_earlyload": ["earlyload.js"],
+  "scriptFileList_preload": ["preload.js"],
+  "scriptFileList": [],
+  "styleFileList": [],
+  "tweeFileList": [],
+  "imgFileList": [],
+  "replacePatchList": ["patches/overlay-replace.json"],
+  "additionFile": [],
+  "additionBinaryFile": [],
+  "addonPlugin": [],
+  "dependenceInfo": [
+    { "modName": "ModLoader", "version": "^2.0.0" }
+  ]
+}
