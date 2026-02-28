@@ -28,7 +28,9 @@ const wardrobeParams = jsonSchema<{
     wardrobeKey: {
       type: 'string' as const,
       description:
-        'Optional. "wardrobe" for home wardrobe, or a location key like "edensCabin", "asylum", "alexFarm". Omit for summary of all wardrobes.',
+        'Optional. Omit to get a summary listing all wardrobes and their keys. '
+        + 'Use "wardrobe" for the home wardrobe, or a location key from the summary '
+        + '(e.g. "edensCabin", "asylum", "alexFarm", "stripClub", "school", "brothel", etc.).',
     },
     slot: {
       type: 'string' as const,
@@ -69,10 +71,13 @@ const WARDROBE_LABELS: Record<string, string> = {
 
 export const getWardrobe = tool({
   description: [
-    'Get wardrobe information. Without parameters, returns a summary of all wardrobes',
-    '(capacity, item count, mode). With wardrobeKey, returns detailed contents of that',
-    'wardrobe, optionally filtered by slot, clothingType, or damaged status.',
-    'Use this when the user asks about their wardrobe, clothing storage, or "what clothes do I have".',
+    'Wardrobe storage system. Clothing is organized by 15 body slots',
+    '(upper, lower, legs, feet, etc.); the player can only WEAR one item per slot,',
+    'but each wardrobe slot can STORE multiple items up to a capacity limit.',
+    'This tool covers clothing in storage — for what is currently worn, see get_clothing_appearance.',
+    'Two modes: (1) Summary — omit all parameters to list every wardrobe with capacity and item count.',
+    '(2) Detail — pass wardrobeKey to list stored clothing in that wardrobe,',
+    'with optional slot/clothingType/damaged filters.',
   ].join(' '),
   inputSchema: wardrobeParams,
   execute: async ({ wardrobeKey, slot, clothingType, damaged }) => {
@@ -247,10 +252,12 @@ const inventoryParams = jsonSchema<{
 
 export const getInventory = tool({
   description: [
-    'Get the player\'s current inventory: temporarily carried clothing (stripped during events),',
-    'misc items (pepper spray, sewing kit, police card), chastity devices,',
-    'condom stock & status, and sex toys (owned/carried/worn).',
-    'Use this when the user asks "what do I have", "do I have spray", "condoms", etc.',
+    'Player\'s carried items and equipment.',
+    'Categories: (1) carried clothing — temporarily stripped during combat/events,',
+    'auto-returned to wardrobe afterward, one item per slot;',
+    '(2) misc tools — pepper spray, sewing kit, police access card;',
+    '(3) chastity devices; (4) condom stock & wearing status; (5) sex toys (owned/carried/worn).',
+    'Filter by category to narrow results.',
   ].join(' '),
   inputSchema: inventoryParams,
   execute: async ({ category }) => {
@@ -369,10 +376,10 @@ const outfitParams = jsonSchema<{
 
 export const getSavedOutfits = tool({
   description: [
-    'Get the player\'s saved outfit presets. Shows name, type, bound wardrobe,',
-    'and which clothing items are part of each outfit.',
-    'Use this when the user asks about their saved outfits, "what outfits do I have",',
-    'or "which outfit has school clothes".',
+    'Saved outfit presets. Each preset defines one clothing item per slot,',
+    'forming a complete look the player can quick-equip from a wardrobe.',
+    'Returns preset name, type (normal/sleep/swim/school),',
+    'bound wardrobe location, and the non-empty slot items.',
   ].join(' '),
   inputSchema: outfitParams,
   execute: async ({ outfitType, wardrobeKey }) => {
