@@ -1,19 +1,24 @@
 # DOLI — **D**egrees **o**f **L**ewdity with **I**ntelligence
 
-[中文](README.zh.md)
+[ English | [中文](README.zh.md) ]
 
-**DOLI** is an AI-enhanced mod for [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity), bringing richer and more dynamic experiences to the game through intelligent capabilities.
+**DOLI** is an AI-enhanced mod for [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity), bringing richer and more dynamic experiences to the game through LLM.
+
+## Quick Start
+
+1. Download `DOLI.mod.zip` from [Releases](../../releases)
+2. Use side load to import `DOLI.mod.zip` in [ModLoader](https://github.com/Lyoko-Jeremie/sugarcube-2-ModLoader) (≥ 2.0.0)
+3. Launch the game, go to the settings in the bottom left corner, select the DOLI tab, and adjust the mod-related configurations.
 
 ## Features
 
 ### 🤖 Intelligent Assistant
 
-An in-game AI chat panel powered by the ReAct Agent pattern:
+An in-game AI assistant powered by the [ReAct](https://arxiv.org/abs/2210.03629) Agent pattern:
 
 - Floating button for instant access during gameplay
-- Context-aware — automatically perceives current game state (time, location, attributes, NPC relationships, etc.)
-- Built-in tools for querying detailed game information
-- Multi-turn conversations with thread management
+- Built-in tools for perceiving game state and querying information
+- Intelligent assistant with multi-turn/thread conversation
 - Compatible with any OpenAI-compatible LLM backend
 
 ### ⚔️ AI Combat Narration
@@ -21,27 +26,22 @@ An in-game AI chat panel powered by the ReAct Agent pattern:
 AI-driven combat scene narration — no more repetitive battle text:
 
 - Automatically extracts per-turn combat events (contact, clothing, control shifts, etc.)
-- Generates vivid combat descriptions in real-time via structured prompt templates
+- Semi-structured prompt templates with customizable text style preferences
+- Real-time LLM generation for rich narrative text, similar to [SillyTavern](https://github.com/SillyTavern/SillyTavern)
 - Collapsible UI panel that doesn't interfere with the vanilla experience
-- Manual or automatic generation modes
-- Option to display original text side-by-side
 
-### 🌐 Multilingual
+### 🎥 TBD
 
-- Mod UI supports Simplified Chinese / English
-- AI output language follows settings or prompt configuration
-
-## Installation
-
-Import `DOLI.mod.zip` via ModLoader sideloading. Requires ModLoader ≥ 2.0.0.
+More features coming soon!
 
 ## Development
 
 ```bash
+# Clone the repository (with submodules)
+git clone --recurse-submodules https://github.com/ArsNativa/Degrees-of-Lewdity-Intelligence.git
+cd Degrees-of-Lewdity-Intelligence
+
 npm run dev:init   # First-time setup (build ModLoader + DoL + Dev Loader)
 npm run dev        # Daily development (webpack watch + dev server)
-npm run build      # Build
 npm run pack       # Build + package DOLI.mod.zip
 ```
-
-See [Development & Testing Workflow](../docs/开发与测试流程.md) for details.

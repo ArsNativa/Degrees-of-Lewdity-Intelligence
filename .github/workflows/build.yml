@@ -1,0 +1,63 @@
+name: Build Mod
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Enable Corepack (for Yarn Berry)
+        run: corepack enable
+
+      - name: Install ModLoader dependencies
+        run: yarn install
+        working-directory: submodules/ModLoader
+
+      - name: Build ModLoader insertTools
+        run: yarn webpack:insertTools
+        working-directory: submodules/ModLoader
+
+      - name: Install mod dependencies
+        run: npm install
+
+      - name: Build and pack mod zip
+        run: npm run pack
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      # Always upload as artifact (available from Actions tab)
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DOLI-${{ steps.sha.outputs.short }}
+          path: "*.mod.zip"
+
+      # Only create GitHub Release when a version tag is pushed
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.mod.zip"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
