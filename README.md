@@ -1,8 +1,8 @@
-# DOLI — **D**egrees **o**f **L**ewdity with **I**ntelligence
+# D.O.L.I
 
 [ English | [中文](README.zh.md) ]
 
-**DOLI** is an AI-enhanced mod for [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity), bringing richer and more dynamic experiences to the game through LLM.
+**D.O.L.I** (**D**egrees **o**f **L**ewdity with **I**ntelligence) is an AI-enhanced mod for [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity), bringing richer and more dynamic experiences to the game through LLM.
 
 ## Quick Start
 
@@ -25,7 +25,7 @@ An in-game AI assistant powered by the [ReAct](https://arxiv.org/abs/2210.03629)
 
 AI-driven combat scene narration — no more repetitive battle text:
 
-- Automatically extracts per-turn combat events (contact, clothing, control shifts, etc.)
+- Automatically extracts per-turn combat events (contact, actions, clothing, etc.)
 - Semi-structured prompt templates with customizable text style preferences
 - Real-time LLM generation for rich narrative text, similar to [SillyTavern](https://github.com/SillyTavern/SillyTavern)
 - Collapsible UI panel that doesn't interfere with the vanilla experience

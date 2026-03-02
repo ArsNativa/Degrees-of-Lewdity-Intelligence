@@ -1,8 +1,8 @@
-# DOLI — **D**egrees **o**f **L**ewdity with **I**ntelligence
+# D.O.L.I
 
 [ [English](README.md) | 中文 ]
 
-**DOLI** 是 [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity) 的智能增强模组，通过 LLM 为游戏带来更丰富、更动态的体验。
+**D.O.L.I** (**D**egrees **o**f **L**ewdity with **I**ntelligence) 是 [Degrees of Lewdity](https://gitgud.io/Vrelnir/degrees-of-lewdity) 的智能增强模组，通过 LLM 为游戏带来更丰富、更动态的体验。
 
 ## 快速开始
 
@@ -21,11 +21,11 @@
 - 支持多轮对话、多对话记录管理
 - 支持自定义 LLM 后端（OpenAI 兼容 API）
 
-### ⚔️ 战斗文本智能生成
+### ⚔️ 战斗文本生成
 
 AI 驱动的战斗场景叙事，告别重复枯燥的战斗文本：
 
-- 自动提取每回合战斗事件（接触、衣物、控制力变化等）
+- 自动提取每回合战斗事件（接触、动作、衣物等）
 - 基于半结构化的 Prompt 模板，自由调整文本偏好风格
 - 由 LLM 实时生成文本，提供类似 [SillyTavern](https://github.com/SillyTavern/SillyTavern) 的丰富文本体验
 - 可折叠 UI 面板，不干扰原版游戏体验
