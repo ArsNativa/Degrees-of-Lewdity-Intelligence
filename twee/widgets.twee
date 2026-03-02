@@ -1,0 +1,11 @@
+:: DOLI Widgets [widget]
+<<widget "doliMaplebirchOptionsEntry">>
+	<details open>
+		<summary class='settingsHeader options'>
+			<span class='gold'>D.O.L.I</span>
+		</summary>
+		<div id="doli-game-settings"></div>
+		<<run setTimeout(() => window.doli?.renderOptionsTab?.(), 0)>>
+	</details>
+	<hr>
+<</widget>>

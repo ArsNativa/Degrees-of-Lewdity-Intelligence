@@ -2,8 +2,8 @@
   "twee": [
     {
       "passageName": "overlayReplace",
-      "from": "\t\t\t<<replace #customOverlayContent>><<optionsinformation>><</replace>>\n\t\t<</button>>\n\t</div>",
-      "to": "\t\t\t<<replace #customOverlayContent>><<optionsinformation>><</replace>>\n\t\t<</button>>\n\t\t<<button \"DOLI\">>\n\t\t\t<<toggleTab>>\n\t\t\t<<replace #customOverlayContent>><div id=\"doli-game-settings\"></div><</replace>>\n\t\t\t<<run window.doli?.renderOptionsTab?.()>>\n\t\t<</button>>\n\t</div>"
+      "from": "\t\t\t<<replace #customOverlayContent>><<optionsinformation>><</replace>>\n\t\t<</button>>",
+      "to": "\t\t\t<<replace #customOverlayContent>><<optionsinformation>><</replace>>\n\t\t<</button>>\n\t\t<<if !window.maplebirch>>\n\t\t\t<<button \"DOLI\">>\n\t\t\t\t<<toggleTab>>\n\t\t\t\t<<replace #customOverlayContent>><div id=\"doli-game-settings\"></div><</replace>>\n\t\t\t\t<<run window.doli?.renderOptionsTab?.()>>\n\t\t\t<</button>>\n\t\t<</if>>"
     }
   ]
 }

@@ -16,4 +16,9 @@ if [ -d "$DEV_LOADER_DIR/patches" ]; then
   zip -r "$ZIP_NAME" patches/
 fi
 
+# Include twee files (symlinked to ../twee, zip follows symlinks by default)
+if [ -d "$DEV_LOADER_DIR/twee" ]; then
+  zip -r "$ZIP_NAME" twee/
+fi
+
 echo "Created $DEV_LOADER_DIR/$ZIP_NAME"
