@@ -45,3 +45,7 @@ npm run dev:init   # 首次初始化（构建 ModLoader + DOLI + Dev Loader）
 npm run dev        # 日常开发（webpack watch + dev server）
 npm run pack       # 构建 + 打包 DOLI.mod.zip
 ```
+
+## 许可证
+
+本项目基于 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 协议发布。

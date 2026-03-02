@@ -45,3 +45,7 @@ npm run dev:init   # First-time setup (build ModLoader + DoL + Dev Loader)
 npm run dev        # Daily development (webpack watch + dev server)
 npm run pack       # Build + package DOLI.mod.zip
 ```
+
+## License
+
+This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
