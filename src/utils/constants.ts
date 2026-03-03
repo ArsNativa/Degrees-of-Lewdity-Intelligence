@@ -1,6 +1,6 @@
 /** Mod identity */
 export const MOD_NAME = 'DOLI';
-export const MOD_VERSION = '0.2.0';
+export const MOD_VERSION = '0.2.1';
 
 /** IndexedDB */
 export const IDB_DB_NAME = 'doli-db';

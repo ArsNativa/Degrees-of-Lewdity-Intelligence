@@ -1,6 +1,6 @@
 {
   "name": "DOLI",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "nickName": { "cn": "D.O.L.I", "en": "D.O.L.I" },
   "scriptFileList_inject_early": ["dist/DOLI.js"],
   "scriptFileList_earlyload": ["dist/earlyload/earlyload.js"],
