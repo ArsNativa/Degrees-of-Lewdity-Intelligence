@@ -123,6 +123,8 @@ export default {
     timeout: 'Request timed out. Please check your network and try again.',
     model_error: 'Model not available. Please check the model name.',
     content_filter: 'Content blocked by safety filter. Please modify your input.',
+    server_error: 'API server internal error. Please try again later.',
     unknown_error: 'An unknown error occurred. Please try again later.',
+    detail_label: 'Details',
   },
 };

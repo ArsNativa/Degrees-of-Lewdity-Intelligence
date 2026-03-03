@@ -122,11 +122,38 @@ export function renderNarrationSuccess(block: HTMLElement, text: string): void {
 
 /**
  * Update a narration block to show an error message.
+ *
+ * Shows the i18n-friendly message prominently; if a `detail` string
+ * is provided (e.g. raw server error), it is rendered inside a
+ * collapsible `<details>` so users can inspect it without clutter.
  */
-export function renderNarrationError(block: HTMLElement, message: string): void {
+export function renderNarrationError(block: HTMLElement, message: string, detail?: string): void {
   block.className = `${BLOCK_CLASS} ${BLOCK_CLASS}--error`;
   const body = block.querySelector('.doli-cn-body');
-  if (body) body.textContent = `${t('combat.generation_failed')}: ${message}`;
+  if (!body) return;
+
+  body.innerHTML = '';
+
+  const msgEl = document.createElement('div');
+  msgEl.className = 'doli-cn-error-message';
+  msgEl.textContent = message;
+  body.appendChild(msgEl);
+
+  if (detail && detail !== message) {
+    const details = document.createElement('details');
+    details.className = 'doli-cn-error-details';
+
+    const summary = document.createElement('summary');
+    summary.textContent = t('llm.detail_label');
+    details.appendChild(summary);
+
+    const pre = document.createElement('pre');
+    pre.className = 'doli-cn-error-detail-text';
+    pre.textContent = detail;
+    details.appendChild(pre);
+
+    body.appendChild(details);
+  }
 }
 
 /**

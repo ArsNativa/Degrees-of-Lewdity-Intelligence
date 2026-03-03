@@ -9,7 +9,7 @@ import { Logger } from '../../utils/logger.js';
 import { t } from '../../utils/i18n/index.js';
 import type { Runtime } from '../../runtime/index.js';
 import { NetworkStatus } from '../../utils/network.js';
-import { LLMError, LLMErrorType } from '../../runtime/llm.js';
+import { LLMError, classifyError } from '../../runtime/llm.js';
 import type { UIMessage } from 'ai';
 import type {
   ToolCallInfo,
@@ -773,6 +773,7 @@ export class ChatPanel {
 
     this.setSending(true);
     this.abortController = new AbortController();
+    let sendFailed = false;
 
     try {
       const result = await this.runtime.agent.run({
@@ -804,29 +805,38 @@ export class ChatPanel {
       });
 
       const finalText = result.text.trim();
-      await this.runtime.conversation.replaceMessages(result.messages);
       if (!finalText) {
+        // Empty response — likely a swallowed API error (e.g. Gemini 503
+        // wrapped in non-standard format).  Don't persist the empty
+        // assistant message; skip renderConversation() to keep the
+        // visible hint from being overwritten by an empty bubble.
         const emptyText = t('msg.empty_response');
         this.completeLiveAssistant(emptyText, false);
+        sendFailed = true;
       } else {
+        await this.runtime.conversation.replaceMessages(result.messages);
         this.completeLiveAssistant(result.text, false);
       }
 
     } catch (err) {
       const llmError = err instanceof LLMError
         ? err
-        : new LLMError(LLMErrorType.UNKNOWN, (err as Error).message || String(err));
+        : classifyError(err);
 
-      const errorText = llmError.message || t('llm.unknown_error');
-      this.completeLiveAssistant(errorText, true);
-      await this.runtime.conversation.addAssistantTextMessage(errorText);
+      this.completeLiveAssistantError(llmError);
+      // Error messages are transient — don't persist to conversation history.
+      // The structured error DOM (with collapsible detail) stays in the live
+      // assistant block; we skip renderConversation() below to preserve it.
       logger.warn('LLM error:', llmError.type, llmError.message);
+      sendFailed = true;
     } finally {
       this.setSending(false);
       this.abortController = null;
       this.liveAssistant = null;
       this.refreshThreadList();
-      this.renderConversation();
+      if (!sendFailed) {
+        this.renderConversation();
+      }
     }
   }
 
@@ -903,6 +913,43 @@ export class ChatPanel {
     } else {
       // Phase 2: full markdown render + XSS sanitize
       this.liveAssistant.textEl.innerHTML = renderMarkdown(text);
+    }
+  }
+
+  /**
+   * Complete the live assistant block with a structured LLM error.
+   * Shows the i18n-friendly message prominently, with an optional
+   * collapsible detail section for the raw server error.
+   */
+  private completeLiveAssistantError(error: LLMError): void {
+    if (!this.liveAssistant) return;
+
+    this.liveAssistant.streamThrottle.cancel();
+    this.liveAssistant.root.classList.remove(`${CSS_PREFIX}msg-streaming`);
+    this.liveAssistant.root.classList.add(`${CSS_PREFIX}msg-error`);
+
+    const textEl = this.liveAssistant.textEl;
+    textEl.innerHTML = '';
+
+    const msgEl = document.createElement('div');
+    msgEl.className = `${CSS_PREFIX}error-message`;
+    msgEl.textContent = error.message || t('llm.unknown_error');
+    textEl.appendChild(msgEl);
+
+    if (error.detail && error.detail !== error.message) {
+      const details = document.createElement('details');
+      details.className = `${CSS_PREFIX}error-details`;
+
+      const summary = document.createElement('summary');
+      summary.textContent = t('llm.detail_label');
+      details.appendChild(summary);
+
+      const pre = document.createElement('pre');
+      pre.className = `${CSS_PREFIX}error-detail-text`;
+      pre.textContent = error.detail;
+      details.appendChild(pre);
+
+      textEl.appendChild(details);
     }
   }
 

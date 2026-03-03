@@ -12,7 +12,7 @@ import { Logger } from '../utils/logger.js';
 import { t } from '../utils/i18n/index.js';
 import { safeFetch } from '../utils/safe-json.js';
 import { createToolSet, getToolNames } from './tools/index.js';
-import { LLMError, LLMErrorType } from './llm.js';
+import { LLMError, LLMErrorType, classifyError } from './llm.js';
 import type { BrowserSettings } from '../utils/settings/index.js';
 
 const logger = new Logger('Agent');
@@ -240,7 +240,7 @@ export class Agent {
         messages: resolvedMessages,
       };
     } catch (err) {
-      const llmError = this.classifyError(err);
+      const llmError = classifyError(err);
       logger.error('Agent run failed:', llmError.type, llmError.message);
       callbacks?.onError?.(llmError);
       throw llmError;
@@ -312,33 +312,5 @@ export class Agent {
       return 'google';
     }
     return 'openaiCompatible';
-  }
-
-  private classifyError(err: unknown): LLMError {
-    if (err instanceof LLMError) return err;
-
-    const message = err instanceof Error ? err.message : String(err);
-    const name = err instanceof Error ? err.name : '';
-
-    if (name === 'AbortError' || message.includes('aborted')) {
-      return new LLMError(LLMErrorType.TIMEOUT, t('llm.timeout'), message);
-    }
-    if (message.includes('401') || message.includes('403') || message.includes('Unauthorized')) {
-      return new LLMError(LLMErrorType.AUTH_ERROR, t('llm.auth_error'), message);
-    }
-    if (message.includes('429') || message.toLowerCase().includes('rate limit')) {
-      return new LLMError(LLMErrorType.RATE_LIMIT, t('llm.rate_limit'), message);
-    }
-    if (message.includes('404') || message.toLowerCase().includes('model not found')) {
-      return new LLMError(LLMErrorType.MODEL_ERROR, t('llm.model_error'), message);
-    }
-    if (message.toLowerCase().includes('content_filter') || message.toLowerCase().includes('content filter')) {
-      return new LLMError(LLMErrorType.CONTENT_FILTER, t('llm.content_filter'), message);
-    }
-    if (err instanceof TypeError || message.includes('fetch') || message.toLowerCase().includes('network')) {
-      return new LLMError(LLMErrorType.NETWORK_ERROR, t('llm.network_error'), message);
-    }
-
-    return new LLMError(LLMErrorType.UNKNOWN, t('llm.unknown_error'), message);
   }
 }

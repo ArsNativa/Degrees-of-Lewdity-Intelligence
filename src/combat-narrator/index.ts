@@ -11,6 +11,7 @@
  * UI block management lives in `./display.ts`.
  */
 import { Logger } from '../utils/logger.js';
+import { t } from '../utils/i18n/index.js';
 import { collectStateSnapshot, EventExtractor, captureIntent } from '../runtime/combat/index.js';
 import type {
   EntityAnchorState,
@@ -134,6 +135,7 @@ function trimPassageText(
 }
 import type { SaveConfig } from '../utils/settings/save.js';
 import type { ChatMessage, LLMGenerateOptions } from '../runtime/llm.js';
+import { classifyError } from '../runtime/llm.js';
 
 const logger = new Logger('CombatNarrator');
 
@@ -636,7 +638,7 @@ export class CombatNarrator {
         const processed = this._applyPostProcessRegex(text.trim(), config);
         if (processed == null) {
           const msg = 'Invalid post-process regex config';
-          renderNarrationError(block, msg);
+          renderNarrationError(block, t('combat.generation_failed'), msg);
           logger.warn(msg);
           return;
         }
@@ -650,7 +652,7 @@ export class CombatNarrator {
         }
         renderNarrationSuccess(block, processed);
         logger.info(`Narration ${isRegenerate ? 'regenerated' : 'generated'} (turn=${extraction.turnIndex}, len=${processed.length})`);      } else {
-        renderNarrationError(block, 'Empty response from LLM');
+        renderNarrationError(block, t('combat.generation_failed'), 'Empty response from LLM');
         logger.warn('LLM returned empty text for narration');
       }
     } catch (err: unknown) {
@@ -659,12 +661,12 @@ export class CombatNarrator {
         logger.debug('Narration generation aborted (passage changed)');
         return;
       }
-      // Classify as LLMError if possible
-      const message = err instanceof Error ? err.message : String(err);
-      logger.error('Narration generation failed:', message);
+      // Classify into structured LLMError
+      const llmError = classifyError(err);
+      logger.error('Narration generation failed:', llmError.type, llmError.message);
       // Update block only if it's still in the DOM
       if (block.isConnected) {
-        renderNarrationError(block, message);
+        renderNarrationError(block, llmError.message, llmError.detail);
       }
     } finally {
       if (this._generationAbort === abort) {

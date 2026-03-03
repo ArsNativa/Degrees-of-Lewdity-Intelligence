@@ -123,6 +123,8 @@ export default {
     timeout: '请求超时，请检查网络或稍后重试。',
     model_error: '模型不可用，请检查模型名称是否正确。',
     content_filter: '内容被安全策略过滤，请修改输入后重试。',
+    server_error: 'API 服务器内部错误，请稍后重试。',
     unknown_error: '发生未知错误，请稍后重试。',
+    detail_label: '详细信息',
   },
 };

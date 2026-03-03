@@ -347,6 +347,33 @@
 .doli-msg-error {
   border: 1px solid var(--doli-danger);
 }
+.doli-error-message {
+  margin-bottom: 0.3em;
+  color: var(--doli-danger);
+}
+.doli-error-details {
+  margin-top: 0.4em;
+}
+.doli-error-details summary {
+  cursor: pointer;
+  font-size: 0.85em;
+  color: var(--doli-text-secondary);
+}
+.doli-error-details summary:hover {
+  color: var(--doli-text-primary);
+}
+.doli-error-detail-text {
+  margin: 0.3em 0 0;
+  padding: 0.4em 0.6em;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--doli-text-secondary);
+  background: var(--doli-bg-surface);
+  border: 1px solid var(--doli-border);
+  border-radius: var(--doli-radius);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .doli-assistant-text {
   word-break: break-word;
 }

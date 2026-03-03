@@ -66,6 +66,38 @@
   font-size: 0.9em;
 }
 
+.doli-cn-error-message {
+  margin-bottom: 0.3em;
+}
+
+.doli-cn-error-details {
+  margin-top: 0.4em;
+  font-style: normal;
+}
+
+.doli-cn-error-details summary {
+  cursor: pointer;
+  font-size: 0.85em;
+  opacity: 0.8;
+  color: var(--300);
+}
+
+.doli-cn-error-details summary:hover {
+  opacity: 1;
+}
+
+.doli-cn-error-detail-text {
+  margin: 0.3em 0 0;
+  padding: 0.4em 0.6em;
+  font-family: monospace;
+  font-size: 0.85em;
+  color: var(--300);
+  background: var(--900);
+  border: 1px solid var(--700);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* ── Paused state ── */
 .doli-cn-block--paused {
   border-color: var(--500);
