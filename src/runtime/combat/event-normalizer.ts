@@ -1,17 +1,18 @@
 /**
  * EventNormalizer — normalizes intent + delta into a structured MechanismEvent list (§3.3).
  *
- * Rules are organized by the 9 event dimensions defined in §3.3.2, evaluated
+ * Rules are organized by the 10 event dimensions defined in §3.3.2, evaluated
  * in priority order:
  *   1. milestone   — virginity loss, vow break (§3.3.3)
- *   2. control     — control gain/loss/shift
- *   3. consent     — consensual state change
- *   4. contact     — body-part engagement/disengagement
- *   5. penetration — bodyState penetration changes
- *   6. clothing    — exposure/displacement/damage
- *   7. boundary_request — askAction requests (§3.3.5)
- *   8. humiliation — mock/disparage (§3.3.4)
- *   9. name_alias_switch — NPC display name change
+ *   2. orgasm      — player orgasm triggered
+ *   3. control     — control gain/loss/shift
+ *   4. consent     — consensual state change
+ *   5. contact     — body-part engagement/disengagement
+ *   6. penetration — bodyState penetration changes
+ *   7. clothing    — exposure/displacement/damage
+ *   8. boundary_request — askAction requests (§3.3.5)
+ *   9. humiliation — mock/disparage (§3.3.4)
+ *  10. name_alias_switch — NPC display name change
  *
  * Each rule produces zero or more MechanismEvent entries. All matching rules
  * fire (no short-circuit), and the final list is sorted by priority.
@@ -21,14 +22,15 @@ import type { ExtractionContext, MechanismEvent } from './types.js';
 /** Priority constants — lower number = higher priority. */
 const PRIORITY = {
   MILESTONE: 1,
-  CONTROL: 2,
-  CONSENT: 3,
-  CONTACT: 4,
-  PENETRATION: 5,
-  CLOTHING: 6,
-  BOUNDARY_REQUEST: 7,
-  HUMILIATION: 8,
-  NAME_ALIAS_SWITCH: 9,
+  ORGASM: 2,
+  CONTROL: 3,
+  CONSENT: 4,
+  CONTACT: 5,
+  PENETRATION: 6,
+  CLOTHING: 7,
+  BOUNDARY_REQUEST: 8,
+  HUMILIATION: 9,
+  NAME_ALIAS_SWITCH: 10,
 } as const;
 
 /**
@@ -39,6 +41,7 @@ export function normalizeEvents(ctx: ExtractionContext): MechanismEvent[] {
 
   // Run all rule dimensions.
   extractMilestoneEvents(ctx, events);
+  extractOrgasmEvents(ctx, events);
   extractControlEvents(ctx, events);
   extractConsentEvents(ctx, events);
   extractContactEvents(ctx, events);
@@ -94,7 +97,41 @@ function extractMilestoneEvents(ctx: ExtractionContext, out: MechanismEvent[]): 
   }
 }
 
-// ── 2. Control ─────────────────────────────────────────────
+// ── 2. Orgasm ──────────────────────────────────────────────
+
+/**
+ * Detects player orgasm events.
+ *
+ * Primary signal: `orgasmCount` increased (set by `<<orgasm>>` widget in
+ * orgasm.twee). Fallback: `orgasmCooldown` edge 0→≥1 + large arousal drop.
+ *
+ * Effects in game: orgasmCooldown set to 3, arousal drops 3000–10000+,
+ * player actions disabled for cooldown turns, stress reduced by 200.
+ */
+function extractOrgasmEvents(ctx: ExtractionContext, out: MechanismEvent[]): void {
+  const { delta, currState } = ctx;
+
+  if (!delta.playerOrgasmTriggered) return;
+
+  out.push({
+    eventType: 'orgasm.player',
+    actorSlot: -1,
+    targetSlot: null,
+    intent: {},
+    delta: {
+      orgasmCountDelta: delta.orgasmCountDelta,
+      orgasmCount: currState.player.orgasmCount,
+      orgasmCooldown: currState.player.effects.orgasmCooldown,
+      arousalDelta: delta.arousalDelta,
+    },
+    outcome: 'observed',
+    evidence: ['player.orgasmCount', 'player.effects.orgasmCooldown', 'arousalDelta'],
+    provenance: 'orgasm_diff',
+    priority: PRIORITY.ORGASM,
+  });
+}
+
+// ── 3. Control ─────────────────────────────────────────────
 
 /** Threshold for control delta to be considered significant. */
 const CONTROL_THRESHOLD = 20;
@@ -118,7 +155,7 @@ function extractControlEvents(ctx: ExtractionContext, out: MechanismEvent[]): vo
   }
 }
 
-// ── 3. Consent ─────────────────────────────────────────────
+// ── 4. Consent ─────────────────────────────────────────────
 
 function extractConsentEvents(ctx: ExtractionContext, out: MechanismEvent[]): void {
   const { delta } = ctx;
@@ -139,7 +176,7 @@ function extractConsentEvents(ctx: ExtractionContext, out: MechanismEvent[]): vo
   }
 }
 
-// ── 4. Contact ─────────────────────────────────────────────
+// ── 5. Contact ─────────────────────────────────────────────
 
 /**
  * Body-part use values that indicate engagement (non-idle).
@@ -230,7 +267,7 @@ function extractContactEvents(ctx: ExtractionContext, out: MechanismEvent[]): vo
   }
 }
 
-// ── 5. Penetration ─────────────────────────────────────────
+// ── 6. Penetration ─────────────────────────────────────────
 
 type PenetrationPhase = 'none' | 'entrance' | 'imminent' | 'penetrated';
 
@@ -269,8 +306,13 @@ function classifyPenetrationPhase(raw: any): PenetrationPhase {
     value === 'anus' ||
     value === 'mouth'
   ) {
-    // "rub" indicates contact without penetration.
-    if (value.includes('rub')) return 'none';
+    // Non-penetrative body contact: rub, thigh/cheek friction, feet.
+    if (
+      value.includes('rub') ||
+      value.includes('thigh') ||
+      value.includes('cheek') ||
+      value.includes('feet')
+    ) return 'none';
     return 'penetrated';
   }
 
@@ -348,7 +390,7 @@ function extractPenetrationEvents(ctx: ExtractionContext, out: MechanismEvent[])
   }
 }
 
-// ── 6. Clothing ────────────────────────────────────────────
+// ── 7. Clothing ────────────────────────────────────────────
 
 function extractClothingEvents(ctx: ExtractionContext, out: MechanismEvent[]): void {
   const { delta } = ctx;
@@ -382,7 +424,7 @@ function extractClothingEvents(ctx: ExtractionContext, out: MechanismEvent[]): v
   }
 }
 
-// ── 7. Boundary Request (§3.3.5) ───────────────────────────
+// ── 8. Boundary Request (§3.3.5) ───────────────────────────
 
 const SAFETY_ASK_ACTIONS = new Set([
   'condoms',
@@ -426,7 +468,7 @@ function extractBoundaryRequestEvents(ctx: ExtractionContext, out: MechanismEven
   });
 }
 
-// ── 8. Humiliation / Mock (§3.3.4) ─────────────────────────
+// ── 9. Humiliation / Mock (§3.3.4) ─────────────────────────
 
 function extractHumiliationEvents(ctx: ExtractionContext, out: MechanismEvent[]): void {
   const { intent, currState, delta } = ctx;
@@ -461,7 +503,7 @@ function extractHumiliationEvents(ctx: ExtractionContext, out: MechanismEvent[])
   });
 }
 
-// ── 9. Name Alias Switch ───────────────────────────────────
+// ── 10. Name Alias Switch ──────────────────────────────────
 
 function extractNameAliasEvents(ctx: ExtractionContext, out: MechanismEvent[]): void {
   const { delta } = ctx;

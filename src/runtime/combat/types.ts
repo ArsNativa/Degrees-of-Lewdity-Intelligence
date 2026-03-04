@@ -76,6 +76,11 @@ export interface DeltaSnapshot {
   positionChange: { from: string; to: string } | null;
   // ── Consensual change ──
   consensualChange: { from: boolean; to: boolean } | null;
+  // ── Orgasm signals ──
+  /** True when `orgasmCount` increased this turn (primary signal). */
+  playerOrgasmTriggered: boolean;
+  /** How many orgasms occurred this turn (usually 1, can be >1 in edge cases). */
+  orgasmCountDelta: number;
   // ── NPC display-name changes (for name_alias_switch) ──
   nameChanges: { npcSlot: number; from: string; to: string }[];
 }
@@ -133,6 +138,8 @@ export interface PlayerSnapshot {
   control: number;
   controlMax: number;
   submissive: number;
+  /** In-combat orgasm counter (0–25). Sourced from `$orgasmcount`. */
+  orgasmCount: number;
   /** Body-part occupation map (e.g. mouthuse → "penis"). */
   bodyUse: Record<string, string | number>;
   /** Body-part detailed state (e.g. vaginastate → "penetrated"). */

@@ -45,6 +45,9 @@ export function computeDelta(prev: StateSnapshot, curr: StateSnapshot): DeltaSna
     positionChange: diffScalar(prev.combat.position, curr.combat.position),
     consensualChange: diffScalar(prev.combat.consensual, curr.combat.consensual),
     nameChanges: diffNpcNames(prev.npcs, curr.npcs),
+
+    // ── Orgasm signals ──
+    ...computeOrgasmSignals(prev, curr),
   };
 }
 
@@ -188,4 +191,38 @@ function diffNpcNames(
 /** Diff a scalar value; returns null if unchanged. */
 function diffScalar<T>(prev: T, curr: T): { from: T; to: T } | null {
   return prev !== curr ? { from: prev, to: curr } : null;
+}
+
+/**
+ * Compute orgasm trigger signals.
+ *
+ * Primary signal: `orgasmCount` increased (driven by `<<orgasm>>` widget
+ * which increments `$orgasmcount` — see orgasm.twee L3).
+ *
+ * Fallback: `orgasmCooldown` transitioned from <=0 to >=1 AND arousal
+ * dropped significantly (>= 2000) — guards against false positives from
+ * non-orgasm cooldown writes.
+ */
+function computeOrgasmSignals(
+  prev: StateSnapshot,
+  curr: StateSnapshot,
+): Pick<DeltaSnapshot, 'playerOrgasmTriggered' | 'orgasmCountDelta'> {
+  const orgasmCountDelta = curr.player.orgasmCount - prev.player.orgasmCount;
+
+  // Primary: orgasmCount increased this turn.
+  if (orgasmCountDelta > 0) {
+    return { playerOrgasmTriggered: true, orgasmCountDelta };
+  }
+
+  // Fallback: cooldown edge (0→≥1) + large arousal drop.
+  const cooldownEdge =
+    prev.player.effects.orgasmCooldown <= 0 &&
+    curr.player.effects.orgasmCooldown >= 1;
+  const arousalDrop = prev.player.arousal - curr.player.arousal;
+
+  if (cooldownEdge && arousalDrop >= 2000) {
+    return { playerOrgasmTriggered: true, orgasmCountDelta: 1 };
+  }
+
+  return { playerOrgasmTriggered: false, orgasmCountDelta: 0 };
 }

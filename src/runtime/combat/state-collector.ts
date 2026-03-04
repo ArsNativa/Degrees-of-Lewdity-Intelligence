@@ -138,6 +138,7 @@ function collectPlayer(V: Record<string, any>): PlayerSnapshot {
     control: safeRead(() => V.control, 1000),
     controlMax: safeRead(() => V.controlmax, 1000),
     submissive: safeRead(() => V.submissive, 1000),
+    orgasmCount: safeRead(() => V.orgasmcount, 0),
     bodyUse,
     bodyState,
     virginity,
@@ -349,11 +350,9 @@ function computeDisplayName(
       }
       return safeRead(() => npc.fullDescription, '') || 'unknown';
     }
-    // Named NPC whose name the player does NOT know → use description (title-like).
-    const desc = safeRead(() => {
-      const idx = npcNum[namedIdx];
-      return V.NPCName?.[idx]?.title;
-    }, '');
+    // Named NPC whose name the player does NOT know → use description
+    // (e.g. "pale figure", "muscular man"), NOT the real name.
+    const desc = safeRead(() => npc.description, '');
     if (desc) return String(desc);
   }
 

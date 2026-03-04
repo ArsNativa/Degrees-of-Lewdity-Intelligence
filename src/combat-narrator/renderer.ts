@@ -141,6 +141,7 @@ function serializePlayer(ctx: PromptRenderContext): string {
     `Trauma: ${traumaLevel(p.trauma, p.traumaMax, { includeMax: true })}`,
     `Control: ${controlLevel(p.control, p.controlMax, p.effects.possessed, { includeMax: true })}`,
     `Submissive: ${submissiveLevel(p.submissive)}`,
+    `Orgasm count (this fight): ${p.orgasmCount}`,
   ];
 
   // Body use
@@ -258,9 +259,23 @@ function serializeIntent(ctx: PromptRenderContext): string {
   const i = ctx.intent;
   const actions: string[] = [];
 
+  // Sub-action → parent guard: sub-actions are sticky DoL variables that
+  // persist across turns and are NOT cleared by <<turnend>>.
+  // Only serialize them when the corresponding parent mouthaction is active,
+  // otherwise the stale value causes false-positive context for the LLM.
+  const subActionGuard: Record<string, () => boolean> = {
+    mockaction: () => i.mouthaction === 'mock' || i.mouthaction === 'disparage',
+    askAction: () => i.mouthaction === 'ask',
+  };
+
   // Actions (body part -> action)
   for (const key of ALL_ACTION_KEYS) {
     const val = i[key as keyof IntentSnapshot] as string | number;
+
+    // Check sub-action parent guard first — skip stale sub-action values.
+    const guard = subActionGuard[key];
+    if (guard && !guard()) continue;
+
     const inactive = SUB_ACTION_KEYS.includes(key as any)
       ? INTENT_SUBACTION_INACTIVE.has(val)
       : INTENT_INACTIVE.has(val);
@@ -333,7 +348,7 @@ function serializePreCombatContext(ctx: PromptRenderContext): string {
 export const DEFAULT_COMBAT_PROMPT_TEMPLATE = `\
 [SYSTEM]
 
-You are a combat sence narrator for "Degrees of Lewdity", an adult R18 text-adventure game. You generate vivid, immersive narration in Simplified Chinese. 
+You are a combat scene narrator for "Degrees of Lewdity", an adult R18 text-adventure game. You generate vivid, immersive narration in Simplified Chinese. 
 
 A combat consists of multiple turns. You are directly connected to the game engine and receive detailed game state and event information every turn. Your narration is driven by this data, not by user input.
 
