@@ -137,6 +137,9 @@ import type { SaveConfig } from '../utils/settings/save.js';
 import type { ChatMessage, LLMGenerateOptions } from '../runtime/llm.js';
 import { classifyError } from '../runtime/llm.js';
 
+/** localStorage key for persisting the auto-generate preference across combat sessions. */
+const LS_KEY_AUTO_GENERATE = 'doli-combat-auto-generate';
+
 const logger = new Logger('CombatNarrator');
 
 export class CombatNarrator {
@@ -316,7 +319,8 @@ export class CombatNarrator {
     // Narrative History
     this._combatId = this._newCombatId();
     this._narrativeOutputs = [];
-    this._sessionAutoGenerate = true;
+    const storedAuto = localStorage.getItem(LS_KEY_AUTO_GENERATE);
+    this._sessionAutoGenerate = storedAuto === null ? true : storedAuto === '1';
     this._lastRecordedTurnIndex = -1;
     // Pre-combat context: use values stashed at the most recent :passagestart
     // (when the old DOM was still present, before the combat passage rendered).
@@ -524,7 +528,8 @@ export class CombatNarrator {
       autoGenerateEnabled: this._sessionAutoGenerate,
       onToggleAutoGenerate: (enabled) => {
         this._sessionAutoGenerate = enabled;
-        logger.info(`Auto-generate ${enabled ? 'enabled' : 'disabled'} for this combat session`);
+        localStorage.setItem(LS_KEY_AUTO_GENERATE, enabled ? '1' : '0');
+        logger.info(`Auto-generate ${enabled ? 'enabled' : 'disabled'} (persisted)`);
       },
     });
     if (!block) {
