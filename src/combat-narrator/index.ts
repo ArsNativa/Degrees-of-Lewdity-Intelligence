@@ -13,12 +13,20 @@
 import { Logger } from '../utils/logger.js';
 import { t } from '../utils/i18n/index.js';
 import { collectStateSnapshot, EventExtractor, captureIntent } from '../runtime/combat/index.js';
+import {
+  advanceSessionLifecycle,
+  createSessionLifecycleState,
+} from '../runtime/narrative/session-lifecycle.js';
 import type {
   EntityAnchorState,
   StateSnapshot,
   IntentSnapshot,
   TurnExtractionResult,
 } from '../runtime/combat/index.js';
+import type {
+  SessionLifecycleState,
+  SessionLifecycleTransition,
+} from '../runtime/narrative/session-lifecycle.js';
 import { renderPrompt, DEFAULT_COMBAT_PROMPT_TEMPLATE } from './renderer.js';
 import type { PromptRenderContext, NarrativeEntry, PreCombatContext } from './renderer.js';
 import {
@@ -142,6 +150,8 @@ const LS_KEY_AUTO_GENERATE = 'doli-combat-auto-generate';
 
 const logger = new Logger('CombatNarrator');
 
+type NarrationPersistenceMode = 'record' | 'ephemeral';
+
 export class CombatNarrator {
   /** Reference to the shared Runtime (LLM client, settings). */
   private _runtime: Runtime;
@@ -155,8 +165,8 @@ export class CombatNarrator {
 
   /** Mod-tracked turn counter (DoL has none built-in). */
   private _turnIndex = 0;
-  /** Whether the previous call was inside an active combat. */
-  private _wasCombatActive = false;
+  /** Tracks active -> cooldown -> inactive combat session transitions. */
+  private _lifecycleState: SessionLifecycleState = createSessionLifecycleState();
   /** Event extractor for mechanism event extraction (§3.3). */
   private _eventExtractor = new EventExtractor();
   /** Intent latched at `:passagestart` for current turn extraction. */
@@ -246,7 +256,7 @@ export class CombatNarrator {
    * Debug helper: collect combat state with session boundary detection.
    */
   collectCombatState(): StateSnapshot | null {
-    this._syncCombatSessionState();
+    if (this._lifecycleState.phase !== 'active') return null;
     return collectStateSnapshot(this._anchorState, this._turnIndex);
   }
 
@@ -254,14 +264,18 @@ export class CombatNarrator {
    * Debug helper: return latest completed extraction (read-only).
    */
   extractCombatEvents(): TurnExtractionResult | null {
-    const combatActive = this._syncCombatSessionState();
-    if (!combatActive) return null;
-
     if (!this._latestTurnExtraction) {
-      logger.info(
-        'No completed extraction for current passage yet. ' +
-        'Wait until passage render finishes.',
-      );
+      if (this._lifecycleState.phase === 'active') {
+        logger.info(
+          'No completed extraction for current passage yet. ' +
+          'Wait until passage render finishes.',
+        );
+      }
+      return null;
+    }
+
+    if (this._lifecycleState.phase === 'inactive') {
+      return null;
     }
 
     return this._latestTurnExtraction;
@@ -336,6 +350,21 @@ export class CombatNarrator {
     }
   }
 
+  /** Release retained combat-session data after the cooldown passage completes. */
+  private _releaseCombatSession(): void {
+    this._anchorState.initialNames.clear();
+    this._anchorState.prevNames.clear();
+    this._anchorState.hintedSwitches.clear();
+    this._turnIndex = 0;
+    this._pendingIntent = null;
+    this._latestTurnExtraction = null;
+    this._eventExtractor.reset();
+    this._combatId = '';
+    this._narrativeOutputs = [];
+    this._preCombatContext = null;
+    this._lastRecordedTurnIndex = -1;
+  }
+
   /**
    * Build PreCombatContext from the stashed outgoing passage data.
    * The stash is populated every `:passagestart` before the new passage renders.
@@ -369,26 +398,27 @@ export class CombatNarrator {
   /**
    * Keep combat-session state in sync with live SugarCube state.
    */
-  private _syncCombatSessionState(): boolean {
+  private _syncCombatSessionState(): SessionLifecycleTransition {
     const V = (window as any).SugarCube?.State?.variables;
-    const combatActive = V?.combat === 1;
+    const transition = advanceSessionLifecycle(this._lifecycleState, {
+      sessionActive: V?.combat === 1,
+    });
+    this._lifecycleState = transition.state;
 
-    if (combatActive && !this._wasCombatActive) {
+    if (transition.shouldStartSession) {
       this._resetCombatSession();
-    } else if (!combatActive && this._wasCombatActive) {
-      // _pendingIntent / _latestTurnExtraction 不在此清理 —
-      // 后续 passage handler 的非战斗分支会处理。
-      // 只清理 narrative history（释放内存）和 combatId（信号量）。
+    } else if (transition.sessionEnded) {
       logger.debug(
-        `Combat session ended (combatId=${this._combatId}, turns=${this._narrativeOutputs.length})`,
+        `Combat session entered cooldown (combatId=${this._combatId}, turns=${this._narrativeOutputs.length})`,
       );
-      this._combatId = '';
-      this._narrativeOutputs = [];
-      this._preCombatContext = null;
+    } else if (transition.shouldCleanupSession) {
+      logger.debug(
+        `Combat session cleaned up (combatId=${this._combatId}, turns=${this._narrativeOutputs.length})`,
+      );
+      this._releaseCombatSession();
     }
 
-    this._wasCombatActive = combatActive;
-    return combatActive;
+    return transition;
   }
 
   /**
@@ -431,10 +461,8 @@ export class CombatNarrator {
     // Stash outgoing passage info (old DOM is still present at :passagestart).
     this._stashOutgoingPassage();
 
-    this._latestTurnExtraction = null;
-
-    const combatActive = this._syncCombatSessionState();
-    if (!combatActive) {
+    const lifecycle = this._syncCombatSessionState();
+    if (lifecycle.phase !== 'active') {
       this._pendingIntent = null;
       return;
     }
@@ -454,8 +482,17 @@ export class CombatNarrator {
    * Passage end handler: compute delta, normalize events, and trigger generation.
    */
   private _onPassageEnd(): void {
-    const combatActive = this._syncCombatSessionState();
-    if (!combatActive) {
+    const lifecycle = this._syncCombatSessionState();
+    if (lifecycle.phase === 'cooldown') {
+      this._pendingIntent = null;
+      if (this._latestTurnExtraction) {
+        logger.info('Generating post-combat closing narration on cooldown passage');
+        void this._maybeGenerateNarration(this._latestTurnExtraction, 'ephemeral');
+      }
+      return;
+    }
+
+    if (lifecycle.phase !== 'active') {
       this._pendingIntent = null;
       return;
     }
@@ -486,12 +523,15 @@ export class CombatNarrator {
    * Orchestrate one-shot narration generation for a completed turn.
    *
    * Checks config, builds prompt, calls LLM, and updates the UI block.
+   * `record` mode appends/replaces session history; `ephemeral` mode is used
+   * for the immediate post-combat closing block and does not mutate history.
    * Runs asynchronously — never blocks the passage transition.
    * Errors are caught and displayed in the UI block; combat flow
    * is never interrupted (§3.8.2 constraint).
    */
   private async _maybeGenerateNarration(
     extraction: TurnExtractionResult,
+    persistenceMode: NarrationPersistenceMode = 'record',
   ): Promise<void> {
     // ── Pre-checks ──
     const config = this._runtime.saveConfig.get();
@@ -523,7 +563,7 @@ export class CombatNarrator {
     const block = insertNarrationBlock({
       turnIndex: extraction.turnIndex,
       onRegenerate: (blk) => {
-        this._handleRegenerate(blk, extraction, originalText);
+        this._handleRegenerate(blk, extraction, originalText, persistenceMode);
       },
       autoGenerateEnabled: this._sessionAutoGenerate,
       onToggleAutoGenerate: (enabled) => {
@@ -545,7 +585,7 @@ export class CombatNarrator {
     }
 
     // ── Run LLM generation on the block ──
-    await this._runGenerationOnBlock(block, extraction, originalText, false);
+    await this._runGenerationOnBlock(block, extraction, originalText, false, persistenceMode);
   }
 
   /**
@@ -556,6 +596,7 @@ export class CombatNarrator {
     block: HTMLElement,
     extraction: TurnExtractionResult,
     originalText: string,
+    persistenceMode: NarrationPersistenceMode,
   ): void {
     // Abort any in-flight generation
     if (this._generationAbort) {
@@ -564,7 +605,7 @@ export class CombatNarrator {
     }
 
     renderNarrationLoading(block);
-    void this._runGenerationOnBlock(block, extraction, originalText, true);
+    void this._runGenerationOnBlock(block, extraction, originalText, true, persistenceMode);
   }
 
   /**
@@ -580,9 +621,11 @@ export class CombatNarrator {
     extraction: TurnExtractionResult,
     originalText: string,
     isRegenerate: boolean,
+    persistenceMode: NarrationPersistenceMode,
   ): Promise<void> {
     const config = this._runtime.saveConfig.get();
     const settings = this._runtime.settings.get();
+    const shouldPersist = persistenceMode === 'record';
 
     // ── Build prompt ──
     const template = config.combatPromptTemplate || DEFAULT_COMBAT_PROMPT_TEMPLATE;
@@ -591,7 +634,8 @@ export class CombatNarrator {
     // When regenerating a turn that already has a recorded output,
     // exclude that output from the sliding window so the LLM doesn't
     // see (and be influenced by) the unsatisfactory previous attempt.
-    const isCurrentTurnRecorded = this._lastRecordedTurnIndex === extraction.turnIndex;
+    const isCurrentTurnRecorded =
+      shouldPersist && this._lastRecordedTurnIndex === extraction.turnIndex;
     const previousOutputs = isCurrentTurnRecorded
       ? this._narrativeOutputs.slice(0, -1).slice(-windowK)
       : this.getPreviousOutputs(windowK);
@@ -647,16 +691,22 @@ export class CombatNarrator {
           logger.warn(msg);
           return;
         }
-        // Decide add vs replace: only replace if we already recorded an output
-        // for this exact turn (i.e. user clicked regenerate after a prior success).
-        if (this._lastRecordedTurnIndex === extraction.turnIndex) {
-          this.replaceLastNarrativeOutput(extraction.turnIndex, processed);
-        } else {
-          this.addNarrativeOutput(extraction.turnIndex, processed);
-          this._lastRecordedTurnIndex = extraction.turnIndex;
+        if (shouldPersist) {
+          // Decide add vs replace: only replace if we already recorded an output
+          // for this exact turn (i.e. user clicked regenerate after a prior success).
+          if (this._lastRecordedTurnIndex === extraction.turnIndex) {
+            this.replaceLastNarrativeOutput(extraction.turnIndex, processed);
+          } else {
+            this.addNarrativeOutput(extraction.turnIndex, processed);
+            this._lastRecordedTurnIndex = extraction.turnIndex;
+          }
         }
         renderNarrationSuccess(block, processed);
-        logger.info(`Narration ${isRegenerate ? 'regenerated' : 'generated'} (turn=${extraction.turnIndex}, len=${processed.length})`);      } else {
+        logger.info(
+          `Narration ${isRegenerate ? 'regenerated' : 'generated'} ` +
+          `(turn=${extraction.turnIndex}, len=${processed.length})`,
+        );
+      } else {
         renderNarrationError(block, t('combat.generation_failed'), 'Empty response from LLM');
         logger.warn('LLM returned empty text for narration');
       }
@@ -721,4 +771,3 @@ export class CombatNarrator {
     }
   }
 }
-
