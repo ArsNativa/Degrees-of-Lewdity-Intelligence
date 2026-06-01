@@ -13,3 +13,7 @@ docs/*
 AGENTS.md
 
 references/
+src/.DS_Store
+.yarn/.DS_Store
+.DS_Store
+.yarn/install-state.gz
