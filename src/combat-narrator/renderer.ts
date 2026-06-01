@@ -37,7 +37,12 @@ import {
   ALL_ACTION_KEYS,
   SUB_ACTION_KEYS,
   TARGET_KEYS,
+  LIQUID_NAMES,
+  BODY_PART_NAMES,
+  liquidAmountLevel,
+  liquidPartialDesc,
 } from '../runtime/semantics/index.js';
+import { groupStatsByCategory } from '../runtime/semantics/player-stats-labels.js';
 
 // ── Public types ─────────────────────────────────────────────
 
@@ -131,6 +136,8 @@ function serializeWorld(ctx: PromptRenderContext): string {
   return lines.join('\n');
 }
 
+
+
 function serializePlayer(ctx: PromptRenderContext): string {
   const p = ctx.state.player;
   const lines: string[] = [
@@ -156,6 +163,35 @@ function serializePlayer(ctx: PromptRenderContext): string {
     .map(([k, v]) => `${k}=${v}`);
   if (states.length) lines.push(`Body state: ${states.join(', ')}`);
 
+  // 添加身体液体描述
+  if (p.bodyLiquid) {
+    const liquidEntries = Object.entries(p.bodyLiquid);
+    if (liquidEntries.length > 0) {
+      const liquidDescs: string[] = [];
+      for (const [part, liquids] of liquidEntries) {
+        const partName = (BODY_PART_NAMES as Record<string, string>)[part] || part;
+        for (const [liquid, amount] of Object.entries(liquids)) {
+          const level = liquidAmountLevel(amount as number);
+          if (level) {
+            const liquidName = (LIQUID_NAMES as Record<string, string>)[liquid] || liquid;
+            const [prefix, suffix] = liquidPartialDesc(part as any, amount as number);
+            
+            if (prefix || suffix) {
+              // Special part with contextual description
+              liquidDescs.push(`${prefix}${liquidName}${suffix}`);
+            } else {
+              // Generic part: "amount liquid on part"
+              liquidDescs.push(`${level} ${liquidName} on ${partName}`);
+            }
+          }
+        }
+      }
+      if (liquidDescs.length > 0) {
+        lines.push(`Body liquids: ${liquidDescs.join('; ')}`);
+      }
+    }
+  }
+
   // Active effects
   const eff = p.effects;
   const effs: string[] = [];
@@ -173,6 +209,10 @@ function serializePlayer(ctx: PromptRenderContext): string {
   const clothingLines = serializeClothing(ctx.state.clothing);
   if (clothingLines) lines.push(`Clothing:\n${clothingLines}`);
 
+  // Player statistics
+  const statsLines = serializeStats(ctx.state.stats, ctx.state.world.gameTimeStamp);
+  if (statsLines) lines.push(`Statistics:\n${statsLines}`);
+
   return lines.join('\n');
 }
 
@@ -189,6 +229,33 @@ function serializeClothing(clothing: ClothingSlotSnapshot[]): string {
     if (c.anusExposed) parts.push('anus exposed');
     return `  ${parts.join(', ')}`;
   }).join('\n');
+}
+
+/**
+ * Serialize raw player statistics as organized, readable key-value pairs.
+ * Groups by category and only includes statistics with non-zero values.
+ * @param stats The statistics data
+ * @param gameTimeStamp Current game time in seconds (used to calculate elapsed time from recorded timestamps)
+ */
+function serializeStats(stats: Record<string, number | undefined>, gameTimeStamp: number = 0): string {
+  const grouped = groupStatsByCategory(stats, gameTimeStamp);
+  if (Object.keys(grouped).length === 0) return '';
+  
+  const lines: string[] = [];
+  const categoryOrder = ['sexual', 'ingestion', 'production', 'orgasm', 'violence', 'services', 'other'];
+  
+  for (const category of categoryOrder) {
+    const items = grouped[category];
+    if (!items || items.length === 0) continue;
+    
+    const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
+    lines.push(`  ${categoryTitle}:`);
+    for (const item of items) {
+      lines.push(`    ${item.label}: ${item.value}`);
+    }
+  }
+  
+  return lines.join('\n');
 }
 
 function serializeNpcs(ctx: PromptRenderContext): string {

@@ -9,6 +9,7 @@
  */
 import { Logger } from '../../utils/logger.js';
 import { safeRead, getV, getC, getSetup, getTime, getWeather, resolveLoveAlias } from '../access.js';
+import { getAllStatKeys } from '../semantics/player-stats.js';
 import type {
   StateSnapshot,
   WorldSnapshot,
@@ -18,6 +19,7 @@ import type {
   CombatSnapshot,
   ClothingSlotSnapshot,
   EntityAnchorState,
+  BodyLiquidSnapshot,
 } from './types.js';
 
 const logger = new Logger('Combat/StateCollector');
@@ -44,6 +46,11 @@ const BODY_STATE_KEYS = [
 // Virginity sub-keys on `$player.virginity`.
 const VIRGINITY_KEYS = [
   'vaginal', 'penile', 'anal', 'oral', 'kiss', 'handholding', 'temple',
+] as const;
+
+const BODY_LIQUID_PARTS = [
+  'neck', 'rightarm', 'leftarm', 'thigh', 'bottom', 'tummy', 'chest',
+  'face', 'hair', 'feet', 'vaginaoutside', 'vagina', 'penis', 'anus', 'mouth',
 ] as const;
 
 /** Max NPC slots in DoL combat (0–5). */
@@ -77,10 +84,11 @@ export function collectStateSnapshot(
   const combat = collectCombat(V, turnIndex);
   const npcs = collectNpcs(V, anchorState);
   const clothing = collectClothing(V);
+  const stats = collectStats(V);
 
   logger.info(`Snapshot collected — turn ${turnIndex}, ${npcs.length} NPC(s)`);
 
-  return { world, player, npcs, combat, clothing };
+  return { world, player, npcs, combat, clothing, stats };
 }
 
 // ── World ──────────────────────────────────────────────────
@@ -96,6 +104,7 @@ function collectWorld(V: Record<string, any>): WorldSnapshot {
     weather: safeRead(() => W?.name ?? V.weatherObj?.name, 'unknown'),
     season: safeRead(() => T?.season, 'unknown'),
     outside: safeRead(() => V.outside, false),
+    gameTimeStamp: safeRead(() => V.timeStamp, 0),
   };
 }
 
@@ -125,6 +134,25 @@ function collectPlayer(V: Record<string, any>): PlayerSnapshot {
     virginity[key] = safeRead(() => V.player?.virginity?.[key], false) === true;
   }
 
+  // 采集身体液体
+  const bodyLiquid: Record<string, BodyLiquidSnapshot> = {};
+  for (const part of BODY_LIQUID_PARTS) {
+    const liquidMap: BodyLiquidSnapshot = {};
+    // 仅当该部位有液体对象时采集
+    const partLiquid = safeRead(() => V.player?.bodyliquid?.[part], null);
+    if (partLiquid && typeof partLiquid === 'object') {
+      for (const liquid of ['semen', 'goo', 'nectar'] as const) {
+        const amount = safeRead(() => partLiquid[liquid], 0);
+        if (amount > 0) {
+          liquidMap[liquid] = amount;
+        }
+      }
+      if (Object.keys(liquidMap).length > 0) {
+        bodyLiquid[part] = liquidMap;
+      }
+    }
+  }
+
   return {
     gender: safeRead(() => V.player?.gender, 'unknown'),
     arousal: safeRead(() => V.arousal, 0),
@@ -142,6 +170,7 @@ function collectPlayer(V: Record<string, any>): PlayerSnapshot {
     bodyUse,
     bodyState,
     virginity,
+    bodyLiquid,
     effects: {
       dissociation: safeRead(() => V.dissociation, 0),
       trance: safeRead(() => V.trance, 0),
@@ -405,6 +434,27 @@ function collectClothing(V: Record<string, any>): ClothingSlotSnapshot[] {
       vaginaExposed: safeRead(() => item.vagina_exposed, 0),
       anusExposed: safeRead(() => item.anus_exposed, 0),
     });
+  }
+
+  return result;
+}
+
+// ── Player Statistics ──────────────────────────────────────
+
+/**
+ * Collect all tracked player statistics from SugarCube variables.
+ * Returns a flat key-value map of statistic names → counts.
+ */
+function collectStats(V: Record<string, any>): Record<string, number | undefined> {
+  const result: Record<string, number | undefined> = {};
+  const statKeys = getAllStatKeys();
+
+  for (const key of statKeys) {
+    const value = safeRead(() => V[key], undefined);
+    // Store only if defined; omit undefined values to keep snapshot compact
+    if (value !== undefined) {
+      result[key] = typeof value === 'number' ? value : 0;
+    }
   }
 
   return result;

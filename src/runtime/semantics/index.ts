@@ -44,6 +44,19 @@ export {
   genderLabel,
 } from './body.js';
 
+// Body liquids (liquid types, body parts, amount levels, descriptions)
+export {
+  LIQUID_TYPES,
+  LIQUID_NAMES,
+  BODY_LIQUID_PARTS,
+  BODY_PART_NAMES,
+  liquidAmountLevel,
+  liquidVaginaDesc,
+  liquidBottomDesc,
+  liquidOralDesc,
+  liquidPartialDesc,
+} from './body-liquids.js';
+
 // Clothing (integrity, exposure)
 export {
   integrityLabel,
@@ -74,3 +87,19 @@ export {
   ALL_ACTION_KEYS,
   TARGET_KEYS,
 } from './actions.js';
+
+// Player statistics (raw variable definitions and snapshots)
+export {
+  PLAYER_STATS_KEYS,
+  getAllStatKeys,
+  getPlayerStatsVariables,
+  type PlayerStatsSnapshot,
+} from './player-stats.js';
+
+// Player statistics labels and formatting
+export {
+  STAT_METADATA,
+  formatStat,
+  groupStatsByCategory,
+  type StatMetadata,
+} from './player-stats-labels.js';
