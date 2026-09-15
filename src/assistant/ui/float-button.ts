@@ -22,7 +22,7 @@ export class FloatButton {
 
     const icon = document.createElement('img');
     icon.className = `${CSS_PREFIX}btn-icon-img`;
-    icon.src = 'img/ui/sym_awareness.png';
+    icon.src = 'img/ui/sym-awareness.png';
     icon.alt = '';
     icon.setAttribute('aria-hidden', 'true');
     btn.appendChild(icon);
