@@ -6,6 +6,11 @@
  */
 
 // ── Mechanism Event (§3.3) ─────────────────────────────────
+// 液体类型（与游戏中一致）
+export type LiquidType = 'semen' | 'goo' | 'nectar';
+
+// 身体部位液体覆盖状态
+export type BodyLiquidSnapshot = Partial<Record<LiquidType, number>>;
 
 /** A single normalized mechanism event extracted from intent + delta. */
 export interface MechanismEvent {
@@ -121,6 +126,8 @@ export interface WorldSnapshot {
   weather: string;
   season: string;
   outside: boolean;
+  /** Game time timestamp in seconds (for calculating elapsed time from recorded event timestamps). */
+  gameTimeStamp: number;
 }
 
 /** Player combat-relevant state. */
@@ -146,6 +153,8 @@ export interface PlayerSnapshot {
   bodyState: Record<string, string | number>;
   /** Virginity map (true = still virgin). */
   virginity: Record<string, boolean>;
+
+  bodyLiquid: Record<string, BodyLiquidSnapshot>;
   /** Active status effects relevant to combat. */
   effects: {
     dissociation: number;
@@ -260,6 +269,8 @@ export interface StateSnapshot {
   npcs: NpcSnapshot[];
   combat: CombatSnapshot;
   clothing: ClothingSlotSnapshot[];
+  /** Raw player statistics snapshot (session-accumulated counts). */
+  stats: Record<string, number | undefined>;
 }
 
 // ── Entity Anchor Tracking ──────────────────────────────────

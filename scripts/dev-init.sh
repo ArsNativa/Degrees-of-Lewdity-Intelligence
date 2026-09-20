@@ -165,7 +165,7 @@ if [ "$SKIP_MODLOADER" = false ]; then
   info "=== Step 2/6: Building Full Built-in ModList ==="
 
   cd "$MODLOADER_DIR"
-  mapfile -t FULL_MOD_ENTRIES < <(grep -v '^\s*//' modList.json | grep 'mod.zip' | sed -E 's/^\s*"([^"]+)".*/\1/')
+  mapfile -t FULL_MOD_ENTRIES < <(grep -v '^\s*//' modList.json | grep -o '"\([^"]*\.mod\.zip\)"' | sed 's/"//g')
 
   for mod_entry in "${FULL_MOD_ENTRIES[@]}"; do
     build_mod_from_entry "$mod_entry"
