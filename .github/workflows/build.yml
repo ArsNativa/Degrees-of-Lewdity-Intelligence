@@ -24,6 +24,22 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Verify release version metadata
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const bootVersion = JSON.parse(fs.readFileSync('boot.json', 'utf8')).version;
+          const packageVersion = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const tag = process.env.GITHUB_REF_NAME;
+          if (bootVersion !== packageVersion || bootVersion !== lock.version || bootVersion !== lock.packages[''].version) {
+            throw new Error('boot.json, package.json and package-lock.json versions must match');
+          }
+          if (process.env.GITHUB_REF_TYPE === 'tag' && tag !== `v${bootVersion}`) {
+            throw new Error(`Release tag ${tag} does not match mod version v${bootVersion}`);
+          }
+          NODE
+
       - name: Enable Corepack (for Yarn Berry)
         run: corepack enable
 
